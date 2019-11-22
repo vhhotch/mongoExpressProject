@@ -3,21 +3,37 @@ const router = Router();
 
 const UserModel = require('../models/user.js');
 
+let hasAccess = false;
+
 router.get('/', (req, res) => {
 res.render('index');
 });
 
 router.get('/signup', (req, res) => {
-    res.render('signup');
+    if (!hasAccess) {
+        res.render('signup');}
+    else {
+        res.redirect ('profile')
+    }
 });
 
 router.get('/login', (req, res) => {
-    res.render('login');
+    if (!hasAccess) {
+        res.render('login');}
+    else {
+        res.redirect ('profile')
+    }
 });
 
 router.get('/profile', (req, res) => {
-    res.render('profile');
-});
+    if (hasAccess){
+        res.render('profile');
+    }
+    else {
+        res.redirect('/')
+    }
+})
+
 
 // router.post('/login', async (req, res) => {
     
@@ -62,6 +78,7 @@ router.post ('/login', async (req, res)=>{
     else if (password == isauser[0].password) {
         let name = `Hello ${isauser[0].name}`
         let email = `Your email is ${isauser[0].email}`
+        hasAccess = true;
         res.render ('profile', {name, email})
     }
     
@@ -74,20 +91,28 @@ router.post ('/login', async (req, res)=>{
 })
 
 
-router.post('/insert', (req, res) => {
+router.post('/insert', async (req, res) => {
     
     let name = req.body.name;
     let email = req.body.email;
     let password = req.body.password;
     
-    const user = new UserModel ({
+
+    let isauser = await UserModel.find({email:email})
+
+    if (isauser.length==0){
+        const user = new UserModel ({
         name: name,
         email: email,
         password: password
     })
-
-    user.save();
-    res.render('index')
+        user.save();
+        res.render('profile',{name, email})
+    }
+    else {
+       let info = "This account exists already, please login"
+       res.render ('login', {info})
+    }
 });
 
 module.exports = router;

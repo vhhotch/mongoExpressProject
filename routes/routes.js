@@ -45,11 +45,12 @@ router.get('/profile', (req, res) => {
 
 router.post ('/login', async (req, res)=>{
     
-    let email = req.body.email;
+    let emailInputted = req.body.email;
+    let password = req.body.password;
 
     let info;
     
-    let isauser = await UserModel.find({email:email})
+    let isauser = await UserModel.find({email:emailInputted})
 
     if (isauser.length==0){
 
@@ -57,11 +58,17 @@ router.post ('/login', async (req, res)=>{
 
         res.render ('login', {info})
     }
+
+    else if (password == isauser[0].password) {
+        let name = `Hello ${isauser[0].name}`
+        let email = `Your email is ${isauser[0].email}`
+        res.render ('profile', {name, email})
+    }
     
     else {
-        let name = `Hello ${isauser[0].name}`
-        let email2 = `Your email is ${isauser[0].email}`
-        res.render ('profile', {name, email2})
+        info = "This email or password does not exist"
+
+        res.render ('login', {info})
     }
 
 })
